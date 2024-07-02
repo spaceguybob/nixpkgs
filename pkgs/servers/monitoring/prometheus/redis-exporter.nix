@@ -2,16 +2,16 @@
 
 buildGoModule rec {
   pname = "redis_exporter";
-  version = "1.57.0";
+  version = "1.61.0";
 
   src = fetchFromGitHub {
     owner = "oliver006";
     repo = "redis_exporter";
     rev = "v${version}";
-    sha256 = "sha256-M5Mv2gAQMR0j2zIX6OwePA9w7OtjJ0i2mR9I4BvUcXI=";
+    sha256 = "sha256-ZfjOsPUr72Ex+5SR2oVMybbR20hwqlto3teTJcdtALA=";
   };
 
-  vendorHash = "sha256-32EjLEPeFsihdG83ru4SSf03F2XJGD8+tbO9ANaI1hs=";
+  vendorHash = "sha256-nrEglhb22LANgm6hiZToPVPfGpkpxpJ7TQlLW0Z7+/4=";
 
   ldflags = [
     "-X main.BuildVersion=${version}"

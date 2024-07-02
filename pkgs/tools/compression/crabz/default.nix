@@ -6,21 +6,21 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "crabz";
-  version = "0.9.0";
+  version = "0.10.0";
 
   src = fetchFromGitHub {
     owner = "sstadick";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-qKyrAao4b+D9KhK0euNcn2/YyXGeUjgCfdVtDxy6cuQ=";
+    sha256 = "sha256-GJHxo4WD/XMudwxOHdNwY1M+b/DFJMpU0uD3sOvO5YU=";
   };
 
-  cargoHash = "sha256-S3/JDheTBwYS3uEAwwK+bAtzp0LP8FHHxyOnIQkKqlA=";
+  cargoHash = "sha256-T+Sdzts7gzkG2EFcKrkVDUIq2V34PBdW3oyxMUcCWaI=";
 
   nativeBuildInputs = [ cmake ];
 
   meta = with lib; {
-    description = "A cross platform, fast, compression and decompression tool";
+    description = "Cross platform, fast, compression and decompression tool";
     homepage = "https://github.com/sstadick/crabz";
     changelog = "https://github.com/sstadick/crabz/blob/v${version}/CHANGELOG.md";
     license = with licenses; [ unlicense /* or */ mit ];

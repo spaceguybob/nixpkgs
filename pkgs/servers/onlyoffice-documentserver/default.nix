@@ -142,8 +142,8 @@ let
         ONLYOFFICE Document Server is an online office suite comprising viewers and editors for texts, spreadsheets and presentations,
         fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time.
       '';
-      homepage = "ONLYOFFICE Document Server is an online office suite comprising viewers and editors";
-      license = licenses.agpl3;
+      homepage = "https://github.com/ONLYOFFICE/DocumentServer";
+      license = licenses.agpl3Plus;
       platforms = [ "x86_64-linux" ];
       sourceProvenance = [ sourceTypes.binaryNativeCode ];
       maintainers = with maintainers; [ SuperSandro2000 ];

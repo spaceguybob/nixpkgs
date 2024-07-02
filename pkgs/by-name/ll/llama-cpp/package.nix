@@ -1,4 +1,5 @@
 { lib
+, autoAddDriverRunpath
 , cmake
 , darwin
 , fetchFromGitHub
@@ -16,15 +17,16 @@
 , clblast
 
 , blasSupport ? builtins.all (x: !x) [ cudaSupport metalSupport openclSupport rocmSupport vulkanSupport ]
+, blas
+
 , pkg-config
 , metalSupport ? stdenv.isDarwin && stdenv.isAarch64 && !openclSupport
 , vulkanSupport ? false
-, mpiSupport ? false # Increases the runtime closure by ~700M
+, rpcSupport ? false
 , vulkan-headers
 , vulkan-loader
 , ninja
 , git
-, mpi
 }:
 
 let
@@ -32,7 +34,7 @@ let
   # otherwise we get libstdc++ errors downstream.
   # cuda imposes an upper bound on the gcc version, e.g. the latest gcc compatible with cudaPackages_11 is gcc11
   effectiveStdenv = if cudaSupport then cudaPackages.backendStdenv else stdenv;
-  inherit (lib) cmakeBool cmakeFeature optionals;
+  inherit (lib) cmakeBool cmakeFeature optionals optionalString;
 
   darwinBuildInputs =
     with darwin.apple_sdk.frameworks;
@@ -69,31 +71,40 @@ let
 in
 effectiveStdenv.mkDerivation (finalAttrs: {
   pname = "llama-cpp";
-  version = "2454";
+  version = "3091";
 
   src = fetchFromGitHub {
     owner = "ggerganov";
     repo = "llama.cpp";
     rev = "refs/tags/b${finalAttrs.version}";
-    hash = "sha256-eZvApj2yLFCbS/TWaHeXJIVQ4PXbPlrxxu/eiov2T8k=";
+    hash = "sha256-ppujag6Nrk/M9QMQ4mYe2iADsfKzmfKtOP8Ib7GZBmk=";
+    leaveDotGit = true;
+    postFetch = ''
+      git -C "$out" rev-parse --short HEAD > $out/COMMIT
+      find "$out" -name .git -print0 | xargs -0 rm -rf
+    '';
   };
 
   postPatch = ''
     substituteInPlace ./ggml-metal.m \
-      --replace '[bundle pathForResource:@"ggml-metal" ofType:@"metal"];' "@\"$out/bin/ggml-metal.metal\";"
+      --replace-fail '[bundle pathForResource:@"ggml-metal" ofType:@"metal"];' "@\"$out/bin/ggml-metal.metal\";"
+
+    substituteInPlace ./scripts/build-info.cmake \
+      --replace-fail 'set(BUILD_NUMBER 0)' 'set(BUILD_NUMBER ${finalAttrs.version})' \
+      --replace-fail 'set(BUILD_COMMIT "unknown")' "set(BUILD_COMMIT \"$(cat COMMIT)\")"
   '';
 
   nativeBuildInputs = [ cmake ninja pkg-config git ]
     ++ optionals cudaSupport [
     cudaPackages.cuda_nvcc
-    cudaPackages.autoAddDriverRunpath
+    autoAddDriverRunpath
   ];
 
   buildInputs = optionals effectiveStdenv.isDarwin darwinBuildInputs
     ++ optionals cudaSupport cudaBuildInputs
-    ++ optionals mpiSupport mpi
     ++ optionals openclSupport [ clblast ]
     ++ optionals rocmSupport rocmBuildInputs
+    ++ optionals blasSupport [ blas ]
     ++ optionals vulkanSupport vulkanBuildInputs;
 
   cmakeFlags = [
@@ -104,19 +115,14 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     (cmakeBool "BUILD_SHARED_LIBS" true)
     (cmakeBool "LLAMA_BLAS" blasSupport)
     (cmakeBool "LLAMA_CLBLAST" openclSupport)
-    (cmakeBool "LLAMA_CUBLAS" cudaSupport)
+    (cmakeBool "LLAMA_CUDA" cudaSupport)
     (cmakeBool "LLAMA_HIPBLAS" rocmSupport)
     (cmakeBool "LLAMA_METAL" metalSupport)
-    (cmakeBool "LLAMA_MPI" mpiSupport)
+    (cmakeBool "LLAMA_RPC" rpcSupport)
     (cmakeBool "LLAMA_VULKAN" vulkanSupport)
   ]
       ++ optionals cudaSupport [
-        (
-          with cudaPackages.flags;
-          cmakeFeature "CMAKE_CUDA_ARCHITECTURES" (
-            builtins.concatStringsSep ";" (map dropDot cudaCapabilities)
-          )
-        )
+        (cmakeFeature "CMAKE_CUDA_ARCHITECTURES" cudaPackages.flags.cmakeCudaArchitecturesString)
       ]
       ++ optionals rocmSupport [
         (cmakeFeature "CMAKE_C_COMPILER" "hipcc")
@@ -128,8 +134,15 @@ effectiveStdenv.mkDerivation (finalAttrs: {
         # Should likely use `rocmPackages.clr.gpuTargets`.
         "-DAMDGPU_TARGETS=gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
       ]
-      ++ optionals metalSupport [ (cmakeFeature "CMAKE_C_FLAGS" "-D__ARM_FEATURE_DOTPROD=1") ]
-      ++ optionals blasSupport [ (cmakeFeature "LLAMA_BLAS_VENDOR" "OpenBLAS") ];
+      ++ optionals metalSupport [
+        (cmakeFeature "CMAKE_C_FLAGS" "-D__ARM_FEATURE_DOTPROD=1")
+        (cmakeBool "LLAMA_METAL_EMBED_LIBRARY" true)
+      ] ++ optionals rpcSupport [
+        "-DLLAMA_RPC=ON"
+        # This is done so we can move rpc-server out of bin because llama.cpp doesn't
+        # install rpc-server in their install target.
+        "-DCMAKE_SKIP_BUILD_RPATH=ON"
+      ];
 
   # upstream plans on adding targets at the cmakelevel, remove those
   # additional steps after that
@@ -138,7 +151,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     mv $out/bin/server $out/bin/llama-server
     mkdir -p $out/include
     cp $src/llama.h $out/include/
-  '';
+  '' + optionalString rpcSupport "cp bin/rpc-server $out/bin/llama-rpc-server";
 
   passthru.updateScript = nix-update-script {
     attrPath = "llama-cpp";

@@ -18,6 +18,10 @@ import ./make-test-python.nix ({ pkgs, lib, ... }: {
       };
     };
 
+    # We don't ship gnome-text-editor in Budgie module, we add this line mainly
+    # to catch eval issues related to this option.
+    environment.budgie.excludePackages = [ pkgs.gnome-text-editor ];
+
     services.xserver.desktopManager.budgie = {
       enable = true;
       extraPlugins = [
@@ -82,9 +86,9 @@ import ./make-test-python.nix ({ pkgs, lib, ... }: {
           machine.wait_until_succeeds("${su "budgie-screensaver-command -q"} | grep 'The screensaver is inactive'")
           machine.sleep(2)
 
-      with subtest("Open MATE terminal"):
-          machine.succeed("${su "mate-terminal >&2 &"}")
-          machine.wait_for_window("Terminal")
+      with subtest("Open GNOME terminal"):
+          machine.succeed("${su "gnome-terminal"}")
+          machine.wait_for_window("${user.name}@machine: ~")
 
       with subtest("Check if Budgie has ever coredumped"):
           machine.fail("coredumpctl --json=short | grep budgie")

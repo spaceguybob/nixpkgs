@@ -37,12 +37,28 @@ let
     meta = with lib; {
       description = "svg-flatten SVG downconverter";
       homepage = "https://github.com/jaseg/gerbolyze";
-      license = with licenses; [ agpl3 ];
+      license = with licenses; [ agpl3Plus ];
       maintainers = with maintainers; [ wulfsta ];
       mainProgram = "svg-flatten";
       platforms = platforms.linux;
     };
   };
+
+  # FIXME: check if this downgrade is still required when bumping gerbolyze
+  # https://github.com/jaseg/gerbolyze/issues/47
+  resvg' = resvg.overrideAttrs (old: rec {
+    version = "0.41.0";
+    src = old.src.override {
+      rev = "v${version}";
+      hash = "sha256-plZiyEiBWeV2mwTsNK5Je8Axs/hcHH8aV2VpOix6QCY=";
+    };
+    cargoDeps = old.cargoDeps.overrideAttrs (lib.const {
+      name = "${old.pname}-${version}-vendor.tar.gz";
+      inherit src;
+      outputHash = "sha256-U7xzb9e9wh9XbLvlYQ0ofIjH8FuSzVcrXnrehQmZgww=";
+    });
+  });
+
 in python3Packages.buildPythonApplication rec {
   inherit version src;
   pname = "gerbolyze";
@@ -61,7 +77,7 @@ in python3Packages.buildPythonApplication rec {
     python3Packages.python-slugify
     python3Packages.lxml
     python3Packages.gerbonara
-    resvg
+    resvg'
     svg-flatten
   ];
 
@@ -79,12 +95,12 @@ in python3Packages.buildPythonApplication rec {
 
   pythonImportsCheck = [ "gerbolyze" ];
 
-  nativeCheckInputs = [ python3Packages.pytestCheckHook resvg svg-flatten ];
+  nativeCheckInputs = [ python3Packages.pytestCheckHook resvg' svg-flatten ];
 
   meta = with lib; {
     description = "Directly render SVG overlays into Gerber and Excellon files";
     homepage = "https://github.com/jaseg/gerbolyze";
-    license = with licenses; [ agpl3 ];
+    license = with licenses; [ agpl3Plus ];
     maintainers = with maintainers; [ wulfsta ];
     mainProgram = "gerbolyze";
     platforms = platforms.linux;
