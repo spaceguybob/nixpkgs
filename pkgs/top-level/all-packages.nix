@@ -300,6 +300,10 @@ with pkgs;
 
   coolercontrol = recurseIntoAttrs (callPackage ../applications/system/coolercontrol { });
 
+  curv = callPackage ../by-name/cu/curv/package.nix {
+    openexr = openexr_3;
+  };
+
   databricks-sql-cli = python3Packages.callPackage ../applications/misc/databricks-sql-cli { };
 
   deck = callPackage ../by-name/de/deck/package.nix {
@@ -1099,6 +1103,14 @@ with pkgs;
     withXfs = true;
     withExt4 = true;
     withNtfs = true;
+  };
+
+  ventoy-full-gtk = ventoy-full.override {
+    defaultGuiType = "gtk3";
+  };
+
+  ventoy-full-qt = ventoy-full.override {
+    defaultGuiType = "qt5";
   };
 
   vprof = with python3Packages; toPythonApplication vprof;
@@ -3441,25 +3453,30 @@ with pkgs;
 
   gnutar = callPackage ../tools/archivers/gnutar { };
 
-  godot3 = callPackage ../development/tools/godot/3 { };
-
-  godot3-export-templates = callPackage ../development/tools/godot/3/export-templates.nix { };
-
-  godot3-headless = callPackage ../development/tools/godot/3/headless.nix { };
-
-  godot3-debug-server = callPackage ../development/tools/godot/3/debug-server.nix { };
-
-  godot3-server = callPackage ../development/tools/godot/3/server.nix { };
-
-  godot3-mono = callPackage ../development/tools/godot/3/mono {};
-
-  godot3-mono-export-templates = callPackage ../development/tools/godot/3/mono/export-templates.nix { };
-
-  godot3-mono-headless = callPackage ../development/tools/godot/3/mono/headless.nix { };
-
-  godot3-mono-debug-server = callPackage ../development/tools/godot/3/mono/debug-server.nix { };
-
-  godot3-mono-server = callPackage ../development/tools/godot/3/mono/server.nix { };
+  inherit (callPackage ../development/tools/godot { })
+    godot3
+    godot3-export-templates
+    godot3-headless
+    godot3-debug-server
+    godot3-server
+    godot3-mono
+    godot3-mono-export-templates
+    godot3-mono-headless
+    godot3-mono-debug-server
+    godot3-mono-server
+    godot_4_3
+    godot_4_3-mono
+    godot_4_3-export-templates
+    godot_4_4
+    godot_4_4-mono
+    godot_4_4-export-templates
+    godot_4
+    godot_4-mono
+    godot_4-export-templates
+    godot
+    godot-mono
+    godot-export-templates
+    ;
 
   goattracker = callPackage ../applications/audio/goattracker { };
 
@@ -4131,11 +4148,7 @@ with pkgs;
 
   liquidctl = with python3Packages; toPythonApplication liquidctl;
 
-  localstack = with python3Packages; toPythonApplication localstack;
-
   xz = callPackage ../tools/compression/xz { };
-
-  lzwolf = callPackage ../games/lzwolf { SDL2_mixer = SDL2_mixer_2_0; };
 
   madlang = haskell.lib.compose.justStaticExecutables haskellPackages.madlang;
 
@@ -4258,7 +4271,7 @@ with pkgs;
   inherit (callPackage ../servers/web-apps/netbox { }) netbox_3_7;
 
   # Not in aliases because it wouldn't get picked up by callPackage
-  netbox = netbox_4_1;
+  netbox = netbox_4_2;
 
   netcat = libressl.nc.overrideAttrs (old: {
     meta = old.meta // {
@@ -4678,11 +4691,6 @@ with pkgs;
 
   podman-compose = python3Packages.callPackage ../applications/virtualization/podman-compose { };
 
-  podman-desktop = callPackage ../applications/virtualization/podman-desktop {
-    inherit (darwin) autoSignDarwinBinariesHook;
-    electron = electron_34;
-  };
-
   polaris = callPackage ../servers/polaris { };
 
   polaris-web = callPackage ../servers/polaris/web.nix { };
@@ -4692,7 +4700,7 @@ with pkgs;
     jdk = jdk8;
   };
 
-  projectm = libsForQt5.callPackage ../applications/audio/projectm { };
+  projectm_3 = libsForQt5.callPackage ../applications/audio/projectm_3 { };
 
   proxmark3 = libsForQt5.callPackage ../tools/security/proxmark3/default.nix {
     inherit (darwin.apple_sdk_11_0.frameworks) Foundation AppKit;
@@ -4996,8 +5004,6 @@ with pkgs;
 
   stm32loader = with python3Packages; toPythonApplication stm32loader;
 
-  stremio = qt5.callPackage ../applications/video/stremio { };
-
   solanum = callPackage ../servers/irc/solanum {
     autoreconfHook = buildPackages.autoreconfHook269;
   };
@@ -5180,7 +5186,7 @@ with pkgs;
 
   translatepy = with python3.pkgs; toPythonApplication translatepy;
 
-  trenchbroom = libsForQt5.callPackage ../applications/misc/trenchbroom { };
+  trenchbroom = callPackage ../applications/misc/trenchbroom { };
 
   inherit (callPackage ../applications/office/trilium {})
     trilium-desktop
@@ -7488,7 +7494,7 @@ with pkgs;
     electron-chromedriver_34
     ;
 
-  electron_32 = if lib.meta.availableOn stdenv.hostPlatform electron-source.electron_32 then electron-source.electron_32 else electron_32-bin;
+  electron_32 = electron_32-bin;
   electron_33 = if lib.meta.availableOn stdenv.hostPlatform electron-source.electron_33 then electron-source.electron_33 else electron_33-bin;
   electron_34 = electron_34-bin;
   electron = electron_34;
@@ -7925,7 +7931,7 @@ with pkgs;
   };
 
   include-what-you-use = callPackage ../development/tools/analysis/include-what-you-use {
-    llvmPackages = llvmPackages_18;
+    llvmPackages = llvmPackages_19;
   };
 
   inherit (callPackage ../applications/misc/inochi2d { })
@@ -8507,7 +8513,11 @@ with pkgs;
   inherit (callPackages ../development/libraries/c-blosc { })
     c-blosc c-blosc2;
 
-  cachix = lib.getBin haskellPackages.cachix;
+  cachix = (lib.getBin haskellPackages.cachix).overrideAttrs (old: {
+    meta = (old.meta or {}) // {
+      mainProgram = old.meta.mainProgram or "cachix";
+    };
+  });
 
   cubeb = callPackage ../development/libraries/audio/cubeb {
     inherit (darwin.apple_sdk.frameworks) AudioUnit CoreAudio CoreServices;
@@ -10437,9 +10447,6 @@ with pkgs;
 
   simpleitk = callPackage ../development/libraries/simpleitk { lua = lua5_4; };
 
-  sfml = callPackage ../development/libraries/sfml {
-    inherit (darwin.apple_sdk.frameworks) IOKit Foundation AppKit OpenAL;
-  };
   skawarePackages = recurseIntoAttrs (callPackage ../development/skaware-packages { });
 
   inherit (skawarePackages)
@@ -10764,12 +10771,14 @@ with pkgs;
     zig_0_11 = zigPackages."0.11";
     zig_0_12 = zigPackages."0.12";
     zig_0_13 = zigPackages."0.13";
+    zig_0_14 = zigPackages."0.14";
   }) zigPackages
      zig_0_11
      zig_0_12
-     zig_0_13;
+     zig_0_13
+     zig_0_14;
 
-  zig = zig_0_13;
+  zig = zig_0_14;
 
   zigStdenv = if stdenv.cc.isZig then stdenv else lowPrio zig.passthru.stdenv;
 
@@ -11431,12 +11440,6 @@ with pkgs;
   osrm-backend = callPackage ../servers/osrm-backend {
     tbb = tbb_2021_11;
   };
-
-  postfix = callPackage ../servers/mail/postfix { };
-
-  pfixtools = callPackage ../servers/mail/postfix/pfixtools.nix { };
-
-  pflogsumm = callPackage ../servers/mail/postfix/pflogsumm.nix { };
 
   system-sendmail = lowPrio (callPackage ../servers/mail/system-sendmail { });
 
@@ -12821,10 +12824,6 @@ with pkgs;
 
   antimony = libsForQt5.callPackage ../applications/graphics/antimony { };
 
-  anup = callPackage ../applications/misc/anup {
-    inherit (darwin.apple_sdk.frameworks) Security;
-  };
-
   apkeep = callPackage ../tools/misc/apkeep {
     inherit (darwin.apple_sdk.frameworks) Security SystemConfiguration;
   };
@@ -13427,6 +13426,16 @@ with pkgs;
     libName = "librewolf";
   };
 
+  librewolf-bin = wrapFirefox librewolf-bin-unwrapped {
+    pname = "librewolf-bin";
+    extraPrefsFiles = [
+      "${librewolf-bin-unwrapped}/lib/librewolf-bin-${librewolf-bin-unwrapped.version}/librewolf.cfg"
+    ];
+    extraPoliciesFiles = [
+      "${librewolf-bin-unwrapped}/lib/librewolf-bin-${librewolf-bin-unwrapped.version}/distribution/extra-policies.json"
+    ];
+  };
+
   firefox_decrypt = python3Packages.callPackage ../tools/security/firefox_decrypt { };
 
   floorp-unwrapped = import ../applications/networking/browsers/floorp {
@@ -13499,11 +13508,6 @@ with pkgs;
   };
 
   gtk-pipe-viewer = perlPackages.callPackage ../applications/video/pipe-viewer { withGtk3 = true; };
-
-  hydrus = python3Packages.callPackage ../applications/graphics/hydrus {
-    inherit miniupnpc swftools;
-    inherit (qt6) wrapQtAppsHook qtbase qtcharts;
-  };
 
   kemai = qt6Packages.callPackage ../applications/misc/kemai { };
 
@@ -15758,6 +15762,8 @@ with pkgs;
     autoconf = buildPackages.autoconf269;
   };
 
+  zed-editor-fhs = zed-editor.fhs;
+
   zgv = callPackage ../applications/graphics/zgv {
     # Enable the below line for terminal display. Note
     # that it requires sixel graphics compatible terminals like mlterm
@@ -16502,10 +16508,6 @@ with pkgs;
   };
 
   tibia = pkgsi686Linux.callPackage ../games/tibia { };
-
-  toppler = callPackage ../games/toppler {
-    SDL2_image = SDL2_image_2_0;
-  };
 
   speed_dreams = callPackage ../games/speed-dreams {
     # Torcs wants to make shared libraries linked with plib libraries (it provides static).
