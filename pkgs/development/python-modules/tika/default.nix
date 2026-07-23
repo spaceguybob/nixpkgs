@@ -7,13 +7,15 @@
   requests,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "tika";
   version = "3.1.0";
   pyproject = true;
 
+  __structuredAttrs = true;
+
   src = fetchPypi {
-    inherit pname version;
+    inherit (finalAttrs) pname version;
     hash = "sha256-TDpATD2EZDfJQtam/Xtx1QKFaQ+uVImqim8A/5zND8c=";
   };
 
@@ -26,7 +28,7 @@ buildPythonPackage rec {
 
   # Requires network
   doCheck = false;
-  pythonImportsCheck = [ pname ];
+  pythonImportsCheck = [ "tika" ];
 
   meta = {
     description = "Python binding to the Apache Tika™ REST services";
@@ -35,4 +37,4 @@ buildPythonPackage rec {
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ Flakebi ];
   };
-}
+})
