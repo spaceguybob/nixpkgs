@@ -2,17 +2,20 @@
   lib,
   buildPythonPackage,
   fetchPypi,
+  setuptools,
 }:
 
 buildPythonPackage rec {
   pname = "types-appdirs";
   version = "1.4.3.5";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
     hash = "sha256-gyaNpkWFNhv6KR+PUGogknYhKgSXvTfwUSqTmz1p/xQ=";
   };
+
+  build-system = [ setuptools ];
 
   meta = {
     description = "PEP 561 type stub package for the appdirs package. It can be used by type-checking tools like mypy, pyright, pytype, PyCharm, etc. to check code that uses appdirs";
