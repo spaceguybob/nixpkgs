@@ -5,13 +5,15 @@
   setuptools,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "types-appdirs";
   version = "1.4.3.5";
   pyproject = true;
 
+  __structuredAttrs = true;
+
   src = fetchPypi {
-    inherit pname version;
+    inherit (finalAttrs) pname version;
     hash = "sha256-gyaNpkWFNhv6KR+PUGogknYhKgSXvTfwUSqTmz1p/xQ=";
   };
 
@@ -23,4 +25,4 @@ buildPythonPackage rec {
     license = lib.licenses.asl20;
     maintainers = [ ];
   };
-}
+})
