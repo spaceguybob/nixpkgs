@@ -18,9 +18,10 @@ buildPythonPackage (finalAttrs: {
     hash = "sha256-0bInBlVxhuYFjaiLoPhYN0AbKuneFX9ZNT3JeNglGHo=";
   };
 
-  build-system = [ setuptools ];
-
-  nativeBuildInputs = [ cython ];
+  build-system = [
+    cython
+    setuptools
+  ];
 
   pythonImportsCheck = [ "timelib" ];
 
