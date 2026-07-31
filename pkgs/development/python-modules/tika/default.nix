@@ -5,6 +5,7 @@
   setuptools,
   pyyaml,
   requests,
+  pytestCheckHook,
 }:
 
 buildPythonPackage (finalAttrs: {
@@ -26,8 +27,13 @@ buildPythonPackage (finalAttrs: {
     requests
   ];
 
-  # Requires network
-  doCheck = false;
+  nativeCheckInputs = [ pytestCheckHook ];
+
+  # Only test that does not require network
+  enabledTestPaths = [
+    "tika/tests/test_from_file_service.py::CreateTest::test_remote_endpoint"
+  ];
+
   pythonImportsCheck = [ "tika" ];
 
   meta = {
