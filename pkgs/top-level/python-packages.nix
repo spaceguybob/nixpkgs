@@ -12505,8 +12505,6 @@ self: super: with self; {
 
   openccu-loom-client = callPackage ../development/python-modules/openccu-loom-client { };
 
-  openccu-loom-types = callPackage ../development/python-modules/openccu-loom-types { };
-
   opencensus = callPackage ../development/python-modules/opencensus { };
 
   opencensus-context = callPackage ../development/python-modules/opencensus-context { };
