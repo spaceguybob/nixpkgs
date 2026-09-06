@@ -20,7 +20,7 @@ buildPythonPackage (finalAttrs: {
   build-system = [ setuptools ];
 
   meta = {
-    description = "PEP 561 type stub package for the appdirs package. It can be used by type-checking tools like mypy, pyright, pytype, PyCharm, etc. to check code that uses appdirs";
+    description = "PEP 561 type stub package for the appdirs package";
     homepage = "https://github.com/python/typeshed";
     license = lib.licenses.asl20;
     maintainers = [ ];
