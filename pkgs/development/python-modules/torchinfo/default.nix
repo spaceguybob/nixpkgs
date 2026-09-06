@@ -8,17 +8,20 @@
   torchvision,
   pytestCheckHook,
   transformers,
+  writableTmpDirAsHomeHook,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "torchinfo";
   version = "1.8.0";
   pyproject = true;
 
+  __structuredAttrs = true;
+
   src = fetchFromGitHub {
     owner = "TylerYep";
     repo = "torchinfo";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-pPjg498aT8y4b4tqIzNxxKyobZX01u+66ScS/mee51Q=";
   };
 
@@ -41,11 +44,8 @@ buildPythonPackage rec {
   nativeCheckInputs = [
     pytestCheckHook
     transformers
+    writableTmpDirAsHomeHook
   ];
-
-  preCheck = ''
-    export HOME=$(mktemp -d)
-  '';
 
   disabledTests = [
     # Skip as it downloads pretrained weights (require network access)
@@ -70,4 +70,4 @@ buildPythonPackage rec {
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ petterstorvik ];
   };
-}
+})
